@@ -3,6 +3,8 @@ from django.db import models
 from django import template
 from django.utils.functional import cached_property
 
+from polymorphic import PolymorphicModel
+
 
 class Page(models.Model):
     title = models.CharField(max_length=200)
@@ -23,6 +25,13 @@ class PageProcessor(models.Model):
 
     class Meta:
         ordering = ('order',)
+
+
+class Processor(PolymorphicModel):
+    '''
+    Base class for a Page processor.
+    '''
+    description = models.CharField(max_length=200, blank=True)
 
 
 class PageFragment(models.Model):
