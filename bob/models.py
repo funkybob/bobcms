@@ -6,7 +6,19 @@ from django.utils.functional import cached_property
 from polymorphic import PolymorphicModel
 
 
-class Page(models.Model):
+class Tracking(models.Model):
+    created = models.DateTimeField(default=timezone.now, editable=False)
+    edited = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.edited = timezone.now()
+        return super().save(*args, **kwargs)
+
+
+class Page(Tracking):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
 
@@ -18,7 +30,7 @@ class Page(models.Model):
         }
 
 
-class PageProcessor(models.Model):
+class PageProcessor(Tracking):
     page = models.ForignKey('Page', related_name='processors')
     order = models.IntegerField(default=0)
     processor = models.ForeignKey('processors.Processor')
@@ -27,14 +39,14 @@ class PageProcessor(models.Model):
         ordering = ('order',)
 
 
-class Processor(PolymorphicModel):
+class Processor(Tracking, PolymorphicModel):
     '''
     Base class for a Page processor.
     '''
     description = models.CharField(max_length=200, blank=True)
 
 
-class PageFragment(models.Model):
+class PageFragment(Tracking):
     page = models.ForeignKey('Page', related_name='fragments')
     name = models.SlugField()
     fragment = models.ForeignKey('fragments.Fragment')
@@ -43,7 +55,7 @@ class PageFragment(models.Model):
         unique_together = ('page', 'name',)
 
 
-class Template(models.Model):
+class Template(Tracking):
     name = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=200, blank=True)
     content = models.TextField(blank=True)
@@ -54,3 +66,19 @@ class Template(models.Model):
 
     def render(self, context):
         return self.tmpl.render(context)
+
+
+class Fragment(Tracking, PolymorphicModel):
+    description = models.CharField(max_length=200, blank=True)
+    tags = TaggableManager(blank=True)
+
+    template_names = ['bob/fragment/default.html']
+
+    def render(self):
+        raise NotImplementedError
+
+
+class TextFragment(Fragment):
+    content = models.TextField(blank=True)
+
+    template_names = ['bob/fragment/text.html']
