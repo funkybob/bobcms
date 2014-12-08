@@ -7,6 +7,9 @@ from polymorphic import PolymorphicModel
 
 
 class Tracking(models.Model):
+    '''
+    ABC for keeping created/edited fields up to date.
+    '''
     created = models.DateTimeField(default=timezone.now, editable=False)
     edited = models.DateTimeField(default=timezone.now, editable=False)
 
@@ -46,15 +49,6 @@ class Processor(Tracking, PolymorphicModel):
     description = models.CharField(max_length=200, blank=True)
 
 
-class PageFragment(Tracking):
-    page = models.ForeignKey('Page', related_name='fragments')
-    name = models.SlugField()
-    fragment = models.ForeignKey('fragments.Fragment')
-
-    class Meta:
-        unique_together = ('page', 'name',)
-
-
 class Template(Tracking):
     name = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=200, blank=True)
@@ -66,6 +60,18 @@ class Template(Tracking):
 
     def render(self, context):
         return self.tmpl.render(context)
+
+
+class PageFragment(Tracking):
+    '''
+    Binds a fragment to a slot on a Page.
+    '''
+    page = models.ForeignKey('Page', related_name='fragments')
+    name = models.SlugField()
+    fragment = models.ForeignKey('fragments.Fragment')
+
+    class Meta:
+        unique_together = ('page', 'name',)
 
 
 class Fragment(Tracking, PolymorphicModel):
