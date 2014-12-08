@@ -24,7 +24,6 @@ class PageView(generic.TemplateView):
                      .filter(pageprocessor__page=page)
                      .order_by('pageprocessor__order')
         )
-        self.processors = page.processors.all()
 
         result = self.apply_processors('dispatch')
         if result is not None:
