@@ -16,10 +16,9 @@ class PlaceholderNode(template.Node):
             name: value.resolve(context)
             for name, value in self.kwargs.items()
         }
-        fragment = context['page'].fragment[name]
-        kwargs['fragment'] = fragment
+        kwargs['fragment'] = fragment = context['page'].fragment[name]
 
-        template_names = fragment.template_names
+        template_names = fragment.template_names[:]
         if 'template' in kwargs:
             template_names.insert(0, kwargs.pop('template'))
 
